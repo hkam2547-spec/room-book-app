@@ -1,25 +1,97 @@
-<!-- โค้ดสำหรับฟอร์มเลือกวัน ห้อง และเวลา -->
-<div class="form-group">
-    <label for="bookingDate">เลือกวันที่ (ปฏิทิน):</label>
-    <input type="date" id="bookingDate" onchange="updateAvailableTimes()" required>
-</div>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองและรายงานการใช้ห้องคอมพิวเตอร์</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ส่วนที่ 1: หน้าจอจองห้อง -->
+        <div class="booking-box">
+            <h2>ระบบจองห้องคอมพิวเตอร์</h2>
+            
+            <div class="input-group">
+                <label for="bookerName">ชื่อผู้จอง / ครูผู้สอน:</label>
+                <input type="text" id="bookerName" placeholder="ระบุชื่อ-นามสกุล">
+            </div>
 
-<div class="form-group">
-    <label for="roomSelect">เลือกห้อง:</label>
-    <select id="roomSelect" onchange="updateAvailableTimes()" required>
-        <option value="">-- กรุณาเลือกห้อง --</option>
-        <option value="228">ห้องคอมพิวเตอร์ 228</option>
-        <option value="232">ห้องคอมพิวเตอร์ 232</option>
-        <option value="233">ห้องคอมพิวเตอร์ 233</option>
-        <option value="237">ห้องคอมพิวเตอร์ 237</option>
-        <option value="238">ห้องคอมพิวเตอร์ 238</option>
-        <option value="king_room">ห้องศาสตร์พระราชา</option>
-    </select>
-</div>
+            <div class="input-group">
+                <label for="bookingDate">เลือกวันที่ (ปฏิทิน):</label>
+                <input type="date" id="bookingDate" onchange="updateAvailableTimes()">
+            </div>
 
-<div class="form-group">
-    <label for="timeSelect">เลือกเวลา (เฉพาะที่ว่าง):</label>
-    <select id="timeSelect" required>
-        <option value="">-- กรุณาเลือกวันและห้องก่อน --</option>
-    </select>
-</div>
+            <div class="input-group">
+                <label for="roomSelect">เลือกห้อง:</label>
+                <select id="roomSelect" onchange="updateAvailableTimes()">
+                    <option value="">-- เลือกห้อง --</option>
+                    <option value="228">ห้องคอมพิวเตอร์ 228</option>
+                    <option value="232">ห้องคอมพิวเตอร์ 232</option>
+                    <option value="233">ห้องคอมพิวเตอร์ 233</option>
+                    <option value="237">ห้องคอมพิวเตอร์ 237</option>
+                    <option value="238">ห้องคอมพิวเตอร์ 238</option>
+                    <option value="king_room">ห้องศาสตร์พระราชา</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="timeSelect">เลือกเวลา (เฉพาะที่ว่าง):</label>
+                <select id="timeSelect">
+                    <option value="">-- กรุณาเลือกวันและห้องก่อน --</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="submitBooking()">ยืนยันการจองห้อง</button>
+        </div>
+
+        <!-- ส่วนที่ 2: หน้าจอรายงานหลังใช้งานเสร็จ -->
+        <div class="booking-box" style="margin-top: 20px;">
+            <h2>รายงานผลหลังใช้งานห้องเสร็จ</h2>
+            
+            <div class="input-group">
+                <label for="reportRoomSelect">เลือกห้องที่ใช้งานเสร็จ:</label>
+                <select id="reportRoomSelect">
+                    <option value="">-- เลือกห้อง --</option>
+                    <option value="228">ห้องคอมพิวเตอร์ 228</option>
+                    <option value="232">ห้องคอมพิวเตอร์ 232</option>
+                    <option value="233">ห้องคอมพิวเตอร์ 233</option>
+                    <option value="237">ห้องคอมพิวเตอร์ 237</option>
+                    <option value="238">ห้องคอมพิวเตอร์ 238</option>
+                    <option value="king_room">ห้องศาสตร์พระราชา</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="reportNote">บันทึกผลการใช้งาน / สภาพห้อง / ปัญหาที่พบ:</label>
+                <textarea id="reportNote" rows="3" placeholder="เช่น อุปกรณ์ใช้งานปกติ, คอมพิวเตอร์เครื่องที่ 5 จอดับ..."></textarea>
+            </div>
+
+            <button class="btn" onclick="submitReport()" style="background-color: #27ae60;">ส่งรายงานการใช้งาน</button>
+        </div>
+
+        <!-- ส่วนที่ 3: ตารางแสดงสถานะปัจจุบันว่าใครจองห้องไหนอยู่ -->
+        <div class="booking-box" style="margin-top: 20px;">
+            <h2>สถานะการจองห้องปัจจุบัน</h2>
+            <table class="status-table" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">ห้อง</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">ผู้จอง</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">วันที่</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">เวลา</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">สถานะ / รายงาน</th>
+                    </tr>
+                </thead>
+                <tbody id="statusTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; border: 1px solid #ddd; padding: 10px;">ยังไม่มีข้อมูลการจองในระบบ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
