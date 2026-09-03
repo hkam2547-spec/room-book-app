@@ -45,10 +45,15 @@
             <button class="btn" onclick="submitBooking()">ยืนยันการจองห้อง</button>
         </div>
 
-        <!-- ส่วนที่ 2: หน้าจอรายงานหลังใช้งานเสร็จ -->
+       <!-- ส่วนที่ 2: หน้าจอรายงานหลังใช้งานเสร็จ -->
         <div class="booking-box" style="margin-top: 20px;">
             <h2>รายงานผลหลังใช้งานห้องเสร็จ</h2>
             
+            <div class="input-group">
+                <label for="reportName">ชื่อผู้จอง (ต้องตรงกับเวลาที่จอง):</label>
+                <input type="text" id="reportName" placeholder="ระบุชื่อ-นามสกุลผู้ที่จองเวลานั้น">
+            </div>
+
             <div class="input-group">
                 <label for="reportRoomSelect">เลือกห้องที่ใช้งานเสร็จ:</label>
                 <select id="reportRoomSelect">
@@ -63,8 +68,13 @@
             </div>
 
             <div class="input-group">
+                <label for="reportTime">ระบุเวลาที่จองไว้:</label>
+                <input type="text" id="reportTime" placeholder="เช่น 08.30-09.20">
+            </div>
+
+            <div class="input-group">
                 <label for="reportNote">บันทึกผลการใช้งาน / สภาพห้อง / ปัญหาที่พบ:</label>
-                <textarea id="reportNote" rows="3" placeholder="เช่น อุปกรณ์ใช้งานปกติ, คอมพิวเตอร์เครื่องที่ 5 จอดับ..."></textarea>
+                <textarea id="reportNote" rows="3" placeholder="เช่น อุปกรณ์ใช้งานปกติ..."></textarea>
             </div>
 
             <button class="btn" onclick="submitReport()" style="background-color: #27ae60;">ส่งรายงานการใช้งาน</button>
