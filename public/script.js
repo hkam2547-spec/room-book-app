@@ -1,159 +1,99 @@
-const API_URL = '/api'; // ใช้ /api สำหรับการออนไลน์ผ่านมือถือ
+// กำหนดช่วงเวลาทั้งหมดอ้างอิงจากคาบเรียน
+const allTimeSlots = [
+    "08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", 
+    "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10", 
+    "15.10-16.00", "16.00-16.50"
+];
 
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-menu button').forEach(btn => btn.classList.remove('tab-active'));
-    document.querySelectorAll('.page-content').forEach(page => page.classList.remove('active-page'));
-    document.getElementById(`btn-${tabName}`).classList.add('tab-active');
-    document.getElementById(`view-${tabName}`).classList.add('active-page');
-}
-
-// ฟังก์ชันแปลงวันที่ให้มี ค.ศ. และ พ.ศ. (สำหรับแสดงผลตาราง)
-function formatDisplayDate(dateString) {
-    if (!dateString) return '-';
-    const parts = dateString.split('-'); 
-    if (parts.length !== 3) return dateString;
-    
-    const yearCE = parseInt(parts[0], 10);
-    const yearBE = yearCE + 543;
-    
-    return `${parts[2]}/${parts[1]}/${yearCE} (พ.ศ. ${yearBE})`;
-}
-
-// ฟังก์ชันสร้างตัวเลือกวันที่ล่วงหน้า 14 วัน
-function generateDateOptions() {
-    const dateSelect = document.getElementById('b-date');
-    if (dateSelect.options.length > 1) return; // ป้องกันการสร้างตัวเลือกซ้ำ
-
-    dateSelect.innerHTML = '<option value="">-- เลือกวันที่ --</option>';
-    
-    const today = new Date();
-    for (let i = 0; i < 14; i++) {
-        const d = new Date(today);
-        d.setDate(d.getDate() + i);
-        
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const yearCE = d.getFullYear();
-        const yearBE = yearCE + 543; 
-        
-        const valueDate = `${yearCE}-${month}-${day}`; 
-        const textDate = `${day}/${month}/${yearCE} (พ.ศ. ${yearBE})`; 
-        
-        dateSelect.innerHTML += `<option value="${valueDate}">${textDate}</option>`;
+// ข้อมูลตารางเวลาที่ไม่ว่าง (ต้องพิมพ์เพิ่มให้ครบทุกห้องตามไฟล์ PDF)
+// ข้อมูลตารางเวลาที่ไม่ว่างของแต่ละห้อง (ดึงจากตารางสอนภาคเรียนที่ 1)
+const scheduleData = {
+    "228": {
+        "Monday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Tuesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "13.30-14.20", "14.20-15.10"],
+        "Wednesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Thursday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Friday": ["08.30-09.20", "09.20-10.10", "11.50-12.40", "12.40-13.30"]
+    },
+    "232": {
+        "Monday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Tuesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Wednesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30"],
+        "Thursday": ["08.30-09.20", "09.20-10.10"],
+        "Friday": ["08.30-09.20", "09.20-10.10", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20"]
+    },
+    "233": {
+        "Monday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Tuesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Wednesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30"],
+        "Thursday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30"],
+        "Friday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50"]
+    },
+    "237": {
+        "Monday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Tuesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Wednesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Thursday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Friday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30"]
+    },
+    "238": {
+        "Monday": ["08.30-09.20", "09.20-10.10", "11.50-12.40", "12.40-13.30"],
+        "Tuesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Wednesday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40", "12.40-13.30", "13.30-14.20", "14.20-15.10"],
+        "Thursday": ["08.30-09.20", "09.20-10.10", "11.50-12.40", "12.40-13.30"],
+        "Friday": ["08.30-09.20", "09.20-10.10", "10.10-11.00", "11.00-11.50", "11.50-12.40"]
     }
+};
+// ฟังก์ชันหาวันในสัปดาห์
+function getDayOfWeek(dateString) {
+    const date = new Date(dateString);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return days[date.getDay()];
 }
 
-// ฟังก์ชันสร้างตัวเลือกเวลา 08:00 - 20:00 น.
-function generateTimeOptions() {
-    const startSelect = document.getElementById('b-start');
-    const endSelect = document.getElementById('b-end');
-    if (startSelect.options.length > 1) return; // ป้องกันการสร้างตัวเลือกซ้ำ
+// ฟังก์ชันอัปเดตเวลาที่ว่าง
+function updateAvailableTimes() {
+    const dateVal = document.getElementById('bookingDate').value;
+    const roomVal = document.getElementById('roomSelect').value;
+    const timeSelect = document.getElementById('timeSelect');
 
-    let timeOptions = '<option value="">-- เลือกเวลา --</option>';
-    
-    for (let h = 8; h <= 20; h++) {
-        for (let m = 0; m < 60; m += 30) {
-            const hour = String(h).padStart(2, '0');
-            const min = String(m).padStart(2, '0');
-            const timeStr = `${hour}:${min}`;
-            timeOptions += `<option value="${timeStr}">${timeStr} น.</option>`;
-        }
+    timeSelect.innerHTML = '<option value="">-- กรุณาเลือกเวลา --</option>';
+
+    if (!dateVal || !roomVal) {
+        timeSelect.innerHTML = '<option value="">-- กรุณาเลือกวันและห้องก่อน --</option>';
+        return;
     }
-    startSelect.innerHTML = timeOptions;
-    endSelect.innerHTML = timeOptions;
-}
 
-async function fetchData() {
-    const response = await fetch(`${API_URL}/data`);
-    const { rooms, bookings } = await response.json();
-    
-    // วาดตาราง (ประวัติทั้งหมด)
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = bookings.map(b => `
-        <tr>
-            <td>${formatDisplayDate(b.usageDate)}</td>
-            <td>${b.startTime} น. - ${b.endTime} น.</td>
-            <td><b>${b.roomName}</b></td>
-            <td>${b.studentName}</td>
-            <td>${b.conditionStatus ? `<b>${b.conditionStatus}</b><br><small>${b.conditionRemark}</small>` : '<span style="color:gray;">ยังไม่คืนห้อง</span>'}</td>
-        </tr>
-    `).join('');
+    // เงื่อนไข: ห้องศาสตร์พระราชา เลือกเวลาได้อิสระ
+    if (roomVal === "king_room") {
+        renderTimeOptions(allTimeSlots, timeSelect);
+        return; 
+    }
 
-    // ใส่ข้อมูลห้องใน Dropdown ให้เลือกจอง
-    const roomSelect = document.getElementById('room-select');
-    roomSelect.innerHTML = '<option value="">-- กรุณาเลือกห้อง --</option>' + 
-        rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+    const dayOfWeek = getDayOfWeek(dateVal);
 
-    // วาดการ์ดรายการที่ยังไม่คืนห้อง
-    const activeGrid = document.getElementById('active-bookings');
-    const activeBookings = bookings.filter(b => b.conditionStatus === null);
-    
-    if (activeBookings.length === 0) {
-        activeGrid.innerHTML = '<p style="color:gray; text-align:center; width: 100%;">ไม่มีห้องที่กำลังใช้งาน</p>';
+    if (dayOfWeek === "Saturday" || dayOfWeek === "Sunday") {
+        timeSelect.innerHTML = '<option value="">-- ไม่มีรอบให้จองในวันเสาร์-อาทิตย์ --</option>';
+        return;
+    }
+
+    const roomSchedule = scheduleData[roomVal] || {};
+    const occupiedSlots = roomSchedule[dayOfWeek] || [];
+    const availableSlots = allTimeSlots.filter(slot => !occupiedSlots.includes(slot));
+
+    if (availableSlots.length > 0) {
+        renderTimeOptions(availableSlots, timeSelect);
     } else {
-        activeGrid.innerHTML = activeBookings.map(b => `
-            <div class="active-card">
-                <h3 style="margin:0 0 10px 0;">${b.roomName}</h3>
-                <p style="margin:5px 0; font-size:14px;"><b>ผู้จอง:</b> ${b.studentName}</p>
-                <p style="margin:5px 0; font-size:14px;"><b>วันที่:</b> ${formatDisplayDate(b.usageDate)} <br><b>เวลา:</b> ${b.startTime} น. - ${b.endTime} น.</p>
-                <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-                <label style="font-size:12px; font-weight:bold;">รายงานสภาพห้อง:</label>
-                <select id="status-${b.id}">
-                    <option value="✅ ปกติเรียบร้อย">✅ ปกติเรียบร้อย</option>
-                    <option value="🧹 ต้องทำความสะอาด">🧹 ต้องทำความสะอาด</option>
-                    <option value="🛠️ มีอุปกรณ์ชำรุด">🛠️ มีอุปกรณ์ชำรุด</option>
-                </select>
-                <input type="text" id="remark-${b.id}" placeholder="ระบุเพิ่มเติม (เช่น แอร์ไม่เย็น)">
-                <button class="btn btn-return" onclick="returnRoom(${b.id})">ส่งรายงานและคืนห้อง</button>
-            </div>
-        `).join('');
-    }
-
-    // สร้างตัวเลือกวันที่และเวลาแบบ Dropdown
-    generateDateOptions();
-    generateTimeOptions();
-}
-
-async function bookRoom() {
-    const roomId = document.getElementById('room-select').value;
-    const name = document.getElementById('b-name').value;
-    const date = document.getElementById('b-date').value;
-    const start = document.getElementById('b-start').value;
-    const end = document.getElementById('b-end').value;
-
-    if (!roomId || !name || !date || !start || !end) return alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
-
-    const res = await fetch(`${API_URL}/book`, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ roomId, studentName: name, usageDate: date, startTime: start, endTime: end })
-    });
-    
-    const result = await res.json();
-    alert(result.message);
-    if (result.success) {
-        // ล้างข้อมูลในฟอร์มเมื่อจองสำเร็จ
-        document.getElementById('b-name').value = '';
-        document.getElementById('b-date').value = '';
-        document.getElementById('b-start').value = '';
-        document.getElementById('b-end').value = '';
-        fetchData();
+        timeSelect.innerHTML = '<option value="">-- ไม่มีเวลาว่างในวันนี้ --</option>';
     }
 }
 
-async function returnRoom(bookingId) {
-    const status = document.getElementById(`status-${bookingId}`).value;
-    const remark = document.getElementById(`remark-${bookingId}`).value;
-
-    if (!confirm('ยืนยันส่งรายงานสภาพห้อง?')) return;
-
-    await fetch(`${API_URL}/return`, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ bookingId, conditionStatus: status, conditionRemark: remark })
+// ฟังก์ชันแสดงตัวเลือกเวลา
+function renderTimeOptions(slots, element) {
+    slots.forEach(slot => {
+        const option = document.createElement('option');
+        option.value = slot;
+        option.textContent = slot;
+        element.appendChild(option);
     });
-    alert('บันทึกสำเร็จ!');
-    fetchData();
 }
-
-fetchData();

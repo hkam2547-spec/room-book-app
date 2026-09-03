@@ -1,69 +1,25 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบห้องเรียน</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>ระบบจัดการห้องเรียน 📅</h1>
-        
-        <div class="tab-menu">
-            <button id="btn-check" class="tab-active" onclick="switchTab('check')">🔍 ดูสถานะและการจองทั้งหมด</button>
-            <button id="btn-book" onclick="switchTab('book')">📝 จองห้อง / รายงานคืนห้อง</button>
-        </div>
-
-        <!-- หน้าดูข้อมูล -->
-        <div id="view-check" class="page-content active-page">
-            <h2>ประวัติการใช้งานห้องทั้งหมด</h2>
-            <table class="status-table">
-                <thead>
-                    <tr>
-                        <th>วันที่</th>
-                        <th>เวลา</th>
-                        <th>ชื่อห้อง</th>
-                        <th>ผู้จอง</th>
-                        <th>สภาพห้องหลังใช้งาน</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
-
-        <!-- หน้าจองห้อง -->
-        <div id="view-book" class="page-content">
-            <div class="booking-box card">
-                <h2 style="margin-top:0;">ฟอร์มจองห้องเรียนใหม่</h2>
-                <div class="input-group">
-                    <label>เลือกห้อง:</label>
-                    <select id="room-select"></select>
-                    
-                    <label>ชื่อผู้จอง:</label>
-                    <input type="text" id="b-name" placeholder="ชื่อ-นามสกุล">
-                    
-                  <label>วันที่ใช้งาน:</label>
-<select id="b-date"></select>
-
-<div style="display: flex; gap: 10px;">
-    <div style="flex:1;">
-        <label>เวลาเริ่ม:</label>
-        <select id="b-start"></select>
-    </div>
-    <div style="flex:1;">
-        <label>เวลาสิ้นสุด:</label>
-        <select id="b-end"></select>
-    </div>
+<!-- โค้ดสำหรับฟอร์มเลือกวัน ห้อง และเวลา -->
+<div class="form-group">
+    <label for="bookingDate">เลือกวันที่ (ปฏิทิน):</label>
+    <input type="date" id="bookingDate" onchange="updateAvailableTimes()" required>
 </div>
-                </div>
-                <button class="btn btn-book" onclick="bookRoom()">ยืนยันการจอง</button>
-            </div>
 
-            <h2 style="margin-top: 30px;">รายการที่กำลังใช้งาน (รอคืนห้อง)</h2>
-            <div id="active-bookings" class="room-grid"></div>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
-</html>
+<div class="form-group">
+    <label for="roomSelect">เลือกห้อง:</label>
+    <select id="roomSelect" onchange="updateAvailableTimes()" required>
+        <option value="">-- กรุณาเลือกห้อง --</option>
+        <option value="228">ห้องคอมพิวเตอร์ 228</option>
+        <option value="232">ห้องคอมพิวเตอร์ 232</option>
+        <option value="233">ห้องคอมพิวเตอร์ 233</option>
+        <option value="237">ห้องคอมพิวเตอร์ 237</option>
+        <option value="238">ห้องคอมพิวเตอร์ 238</option>
+        <option value="king_room">ห้องศาสตร์พระราชา</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="timeSelect">เลือกเวลา (เฉพาะที่ว่าง):</label>
+    <select id="timeSelect" required>
+        <option value="">-- กรุณาเลือกวันและห้องก่อน --</option>
+    </select>
+</div>
